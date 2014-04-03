@@ -20,13 +20,14 @@ class bot {
 	}
 
 	private function connect() {
-
+		return true;
 	}
 
 	public function get($url, $canRedirect = true) {
 		$this -> setOpts(array(CURLOPT_URL => $url));
 		$response = curl_exec(self :: $connection);
 		$response = new response($response);
+	
 		return $response;
 	}
 
@@ -61,7 +62,23 @@ class response extends bot {
 	public function __construct($response) {
 		require_once('core/modules/simple_html_dom.php');
 		$headerSize = $this -> getOpt(CURLINFO_HEADER_SIZE);
-		$this -> head = substr($response, 0, $headerSize);
+		$raw = trim(substr($response, 0, $headerSize));
+
+		$head = array();
+		$headers = explode("\n", $raw);
+		foreach ($headers as $id => $header) {
+			$header = explode(':', $header);
+			if($id == 0)
+			{
+				$header[1] = $header[0];
+				$header[0] = 'Status';
+			}
+
+			$head[$header[0]] = $header[1];
+		}
+		$this -> head = $head;
+		$this -> head['raw'] = $raw;
+
 		$this -> body = new simple_html_dom();
 		$this -> body -> load(substr($response, $headerSize, strlen($response) - $headerSize));
 	}
