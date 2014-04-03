@@ -57,7 +57,6 @@ class bot {
 class response extends bot {
 	public $head;
 	public $body;
-	public $dom;
 
 	public function __construct($response) {
 		require_once('core/modules/simple_html_dom.php');
