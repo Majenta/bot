@@ -1,0 +1,6 @@
+It's a micro framework for bots and site parsers development.
+Provide a simple interface to make an HTTP(s) request, analyse headers and manipulate DOM of response.
+Framework can use a scenarios of requesting and parsing methods for the popular web-sites.
+Scenarios located in providers directory and can be transmited between framework's users.
+
+With it, you can develop a client and REST-server to provide some services.
