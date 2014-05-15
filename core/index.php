@@ -33,8 +33,9 @@ class bot {
 	}
 
 	public function get($url, $followLocation = true) {
-		$response = request::get($this, $url);
-		/*
+		//$response = request::get($this, $url);
+
+		
 		$this -> setOpts(array(CURLOPT_URL => $url));
 		$response = curl_exec(self :: $connection);
 		$response = new response($response);
@@ -44,11 +45,37 @@ class bot {
 			
 			//if($response -> header['Location'] == '/')
 			//$response -> header['Location'] = parse_url($url, PHP_URL_HOST);
-		
-			echo $this -> getOpt(CURLINFO_EFFECTIVE_URL).'<br>';
-			$this -> get($response -> header['Location']);
+			//echo $url;
+			//echo $this -> getOpt(CURLINFO_EFFECTIVE_URL).'<br>';
+			$host = parse_url($this -> getOpt(CURLINFO_EFFECTIVE_URL));
+			$host['dir'] = dirname($host['path']);
+			$host['script'] = basename($host['path']);
+			//echo $response -> header['Location'];
+			$location = parse_url($response -> header['Location']);
+			$location['dir'] = @dirname($location['path']);
+			//print_r($redirect);
+			if(!isset($location['host']))
+			{
+				//$redirect = $host['scheme'] . '://' . $host['host'] . $host['dir'] . '/' . basename($location['path']);
+				$redirect = $host['scheme'] . '://' . $host['host'];
+				
+				//if(!isset($location['dir']))
+				//if($location['dir'] == '.' || $location['dir'] == '..' )
+				//if($location['dir'] == '.')
+				if(preg_match('/./', $location['dir']))
+				$redirect .= $host['dir'] . '/' . $location['dir'];
+
+				$redirect .= '/' . basename($location['path']);
+			}
+			else
+			$redirect = $response -> header['Location'];
+			
+			//echo $redirect;
+			//echo $redirect['path'];
+			//echo $host['dir'];
+			return $this -> get($redirect);
 		}
-		*/
+		
 		return $response;
 	}
 
@@ -110,7 +137,7 @@ class response extends bot {
 				$header[0] = 'Status';
 			}
 
-			$head[$header[0]] = $header[1];
+			$head[$header[0]] = trim($header[1]);
 		}
 		$this -> header = $head;
 		$this -> header['raw'] = $raw;
@@ -121,7 +148,7 @@ class response extends bot {
 		$this -> body -> load(substr($response, $headerSize, strlen($response) - $headerSize));
 	}
 }
-
+/*
 abstract class request {
 	public function get(&$connection, $url) {
 		//echo $connection -> test;
@@ -140,3 +167,4 @@ abstract class request {
 
 	}
 }
+*/
