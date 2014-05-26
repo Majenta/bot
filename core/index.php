@@ -1,8 +1,9 @@
 <?php
+set_exception_handler('error');
+
 class bot {
-	const FOLLOW_LOCATION = true;
 	public $host;
-	public $test = 'TEST';
+	public $cookie_dir = '/cookies/';
 
 	private $defaults = array(
 		CURLOPT_RETURNTRANSFER => true,
@@ -32,36 +33,48 @@ class bot {
 		return new $provider();
 	}
 
-	public function get($url, $followLocation = true) {
-		//$response = request::get($this, $url);
 
-		
+	public function test($m) {
+		static $d = 0;
+		$d++;
+		echo $d;
+
+		if($d < 3)
+		{
+			return $this -> test($m);
+		}
+		$d = 0;
+		return $m;
+	}
+
+	public function get($url, $followLocation = true) {
 		$this -> setOpts(array(CURLOPT_URL => $url));
 		$response = curl_exec(self :: $connection);
 		$response = new response($response);
 
 		if($followLocation && isset($response -> header['Location']))
+		return $this -> redirect($response -> header['Location']);
+
+		return $response;
+	}
+
+	private function redirect($redirectUrl) {
+		static $depth = 0;
+
+		if($depth < FOLLOW_LOCATION_DEPTH)
 		{
-			
-			//if($response -> header['Location'] == '/')
-			//$response -> header['Location'] = parse_url($url, PHP_URL_HOST);
-			//echo $url;
-			//echo $this -> getOpt(CURLINFO_EFFECTIVE_URL).'<br>';
+			$depth ++;
 			$host = parse_url($this -> getOpt(CURLINFO_EFFECTIVE_URL));
 			$host['dir'] = dirname($host['path']);
 			$host['script'] = basename($host['path']);
-			//echo $response -> header['Location'];
-			$location = parse_url($response -> header['Location']);
+
+			$location = parse_url($redirectUrl);
 			$location['dir'] = @dirname($location['path']);
-			//print_r($redirect);
+
 			if(!isset($location['host']))
 			{
-				//$redirect = $host['scheme'] . '://' . $host['host'] . $host['dir'] . '/' . basename($location['path']);
 				$redirect = $host['scheme'] . '://' . $host['host'];
-				
-				//if(!isset($location['dir']))
-				//if($location['dir'] == '.' || $location['dir'] == '..' )
-				//if($location['dir'] == '.')
+
 				if(preg_match('/./', $location['dir']))
 				$redirect .= $host['dir'] . '/' . $location['dir'];
 
@@ -69,14 +82,13 @@ class bot {
 			}
 			else
 			$redirect = $response -> header['Location'];
-			
-			//echo $redirect;
-			//echo $redirect['path'];
-			//echo $host['dir'];
+
 			return $this -> get($redirect);
 		}
-		
-		return $response;
+		else
+			throw new Exception('Recursion depth limit ('. FOLLOW_LOCATION_DEPTH .') exceeded', 100);
+
+		$depth = 0;
 	}
 
 	public function post($url, $data = array(), $followLocation = true) {
@@ -88,10 +100,11 @@ class bot {
 
 		$response = curl_exec(self :: $connection);
 		$this -> setOpts(array(CURLOPT_POST => false)); // POST mode disable
+		
 		$response = new response($response);
 
 		if($followLocation && isset($response -> header['Location']))
-		$this -> get($response -> header['Location']);
+		return $this -> redirect($response -> header['Location']);
 
 		return $response;
 	}
@@ -102,7 +115,6 @@ class bot {
 
 	public function getOpt($opt) {
 		return curl_getinfo(self :: $connection, $opt);
-		//return curl_getinfo($this, $opt);
 	}
 
 	public function setHeaders($headers) {
@@ -148,23 +160,13 @@ class response extends bot {
 		$this -> body -> load(substr($response, $headerSize, strlen($response) - $headerSize));
 	}
 }
-/*
-abstract class request {
-	public function get(&$connection, $url) {
-		//echo $connection -> test;
-		$connection -> setOpts(array(CURLOPT_URL => $url));
-		$response = curl_exec($connection :: $connection);
-		$response = new response($response);
 
-		return $response;
-	}
+function error($exception) {
+	$code = $exception -> getCode();
+	$file = $exception -> getFile();
+	$line = $exception -> getLine();
+	$trace = $exception -> getTrace();
+	$message = $exception -> getMessage();
 
-	public function post() {
-
-	}
-
-	private function exec() {
-
-	}
+	require_once(ROOT . '/tpl/error.php');
 }
-*/
