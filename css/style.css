@@ -1,0 +1,32 @@
+body {
+	background: #cacaca;
+	width: 100%;
+	overflow: hidden;
+}
+h1 {
+	color: #fff;
+	background: #DD2E2E;
+}
+h3 {
+	background: #EEA222;
+}
+.block {
+	padding: 20px;
+	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+	border-radius: 10px;
+	margin: 10px 40px 10px 20px;
+}
+.info {
+	background: #5A69FF;
+}
+hr {
+	
+	padding: 0px;
+	margin: 5px 0px;
+}
+span {
+	color: #DD2E2E;
+}
+#trace {
+	font-weight: bold;
+}
